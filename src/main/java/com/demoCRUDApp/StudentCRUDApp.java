@@ -114,4 +114,63 @@ public class StudentCRUDApp extends HttpServlet {
 		    	}
 		       
 	   }
+	   
+	   @Override
+	   protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException{
+		   
+		    req.setCharacterEncoding("UTF-8");
+		    
+		    String action = req.getParameter("action");
+		    
+		    try(Connection con = DBConnectionApp.getConnection()){
+		    	
+		    	if("create".equals(action)) {
+		    		
+		    		String sql = "INSERT INTO student_detailsdb.studenttable(name, email, course) VALUES (?, ?,?)";
+		    		
+		    		try(PreparedStatement ps = con.prepareStatement(sql)){
+		    			ps.setString(1, req.getParameter("name"));
+		    			ps.setString(2, req.getParameter("email"));
+		    			ps.setString(3, req.getParameter("course"));
+		    			
+		    			ps.executeUpdate();
+		    		}
+		    	}else if("update".equals(action)) {
+		    		
+		    		int id = Integer.parseInt(req.getParameter("id"));
+		    		
+		    		String sql = "UPDATE student_detailsdb.studenttable SET name=?, email=?, course=? WHERE id =?";
+		    		
+		    		try(PreparedStatement ps = con.prepareStatement(sql)){
+		    			ps.setString(1, req.getParameter("name"));
+		    			ps.setString(2, req.getParameter("email"));
+		    			ps.setString(3, req.getParameter("course"));
+		    			ps.setInt(4, id);
+		    			
+		    			ps.executeUpdate();
+		    		}
+		    	} else if("delete".equals(action)) {
+		    		
+		    		int id = Integer.parseInt(req.getParameter("id"));
+		    		
+		    		String sql = "DELETE FROM student_detailsdb.studenttable WHERE id=?";
+		    		
+		    		try(PreparedStatement ps = con.prepareStatement(sql)){
+		    			ps.setInt(1, id);
+		    			ps.executeUpdate();
+		    		}
+		    	} else {
+		    		
+		    		res.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid Action");
+		    		return;
+		    	}
+		    	
+		    	res.sendRedirect(req.getContextPath() + "/students");
+		    	
+		    }catch(SQLException | NumberFormatException  e) {
+		    	e.printStackTrace();
+		    	res.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unable to process the student operation.");
+		    }
+		   
+	   }
 }
